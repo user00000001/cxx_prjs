@@ -49,6 +49,10 @@ int main() {
     while (!fQuit) {
         choice = DoMenu();
         if (choice < DrawRect || choice > Quit) {
+            if (cin.fail()) {
+                cin.clear();
+                cin.ignore(10, '\n');
+            }
             cout << "\nInvalid Choice, try again. ";
             cout << endl << endl;
             continue;

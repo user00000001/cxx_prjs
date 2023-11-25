@@ -1,4 +1,4 @@
-# Sample 000
+# Sample c000
 
 ## build & make & make install
 
@@ -12,6 +12,6 @@ mkdir build; cd build; cmake -DCMAKE_BUILD_TYPE=Debug ..; cmake --build .
 ## in container
 
 ```shell
-nerdctl build . -t test000
-nerdctl run --rm -it test000
+nerdctl build . -t testc000
+nerdctl run --rm -it testc000
 ```
