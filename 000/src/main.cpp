@@ -2,129 +2,210 @@
 
 using namespace std;
 
-enum CHOICE {
-    DrawRect = 1,
-    GetArea,
-    GetPerim,
-    ChangeDimensions,
-    Quit,
+class Part
+{
+public:
+    Part() : itsPartNumber(1) {}
+    Part(int PartNumber) : itsPartNumber(PartNumber) {}
+    virtual ~Part() {}
+    int GetPartNumber() const { return itsPartNumber; }
+    virtual void Display() const = 0;
+
+private:
+    int itsPartNumber;
 };
 
-class Rectangle {
-    public:
-        Rectangle(int width, int height);
-        ~Rectangle();
-        int GetHeight() const { return itsHeight; }
-        int GetWidth() const { return itsWidth; }
-        int GetArea() const { return itsHeight * itsWidth; }
-        int GetPerim() const { return 2*itsHeight+2*itsWidth; }
-        void SetSize(int newWidth, int newHeight);
-    private:
-        int itsWidth;
-        int itsHeight;
+void Part::Display() const
+{
+    cout << "\nPart Number: " << itsPartNumber << endl;
+}
+
+class CarPart : public Part
+{
+public:
+    CarPart() : itsModelYear(94) {}
+    CarPart(int year, int partNumber) : itsModelYear(year), Part(partNumber) {}
+    virtual void Display() const
+    {
+        Part::Display();
+        cout << "Model Year: ";
+        cout << itsModelYear << endl;
+    }
+
+private:
+    int itsModelYear;
 };
 
-void Rectangle::SetSize(int newWidth, int newHeight) {
-    itsHeight = newHeight;
-    itsWidth = newWidth;
-}
+class AirPlanePart : public Part
+{
+public:
+    AirPlanePart() : itsEngineNumber(1) {}
+    AirPlanePart(int EngineNumber, int PartNumber) : itsEngineNumber(EngineNumber), Part(PartNumber) {}
+    virtual void Display() const
+    {
+        Part::Display();
+        cout << "Engine No.: ";
+        cout << itsEngineNumber << endl;
+    }
 
+private:
+    int itsEngineNumber;
+};
 
-Rectangle::Rectangle(int newWidth, int newHeight) {
-    itsHeight = newHeight;
-    itsWidth = newWidth;
-}
-
-Rectangle::~Rectangle(){}
-
-int DoMenu();
-void DoDrawRect(Rectangle);
-void DoGetArea(Rectangle);
-void DoGetPerim(Rectangle);
-
-int main() {
-    Rectangle theRect(30, 5);
-    int choice = DrawRect;
-    int fQuit = false;
-    while (!fQuit) {
-        choice = DoMenu();
-        if (choice < DrawRect || choice > Quit) {
-            if (cin.fail()) {
-                cin.clear();
-                cin.ignore(10, '\n');
-            }
-            cout << "\nInvalid Choice, try again. ";
-            cout << endl << endl;
-            continue;
-        }
-
-        switch (choice)
+class PartNode
+{
+public:
+    PartNode(Part *pPart) : itsPart(pPart), itsNext(0) {}
+    ~PartNode()
+    {
+        delete itsPart;
+        itsPart = 0;
+        delete itsNext;
+        itsNext = 0;
+    }
+    void SetNext(PartNode *node) { itsNext = node; }
+    PartNode *GetNext() const
+    {
+        return itsNext;
+    }
+    Part *GetPart() const
+    {
+        if (itsPart)
         {
-        case DrawRect:
-            DoDrawRect(theRect);
-            break;
+            return itsPart;
+        }
+        return NULL;
+    };
 
-        case GetArea:
-            DoGetArea(theRect);
-            break;
-        
-        case GetPerim:
-            DoGetPerim(theRect);
-            break;
+private:
+    Part *itsPart;
+    PartNode *itsNext;
+};
 
-        case ChangeDimensions:
-            int newHeight, newWidth;
-            cout << "\nNew width: ";
-            cin >> newWidth;
-            cout << "New height: ";
-            cin >> newHeight;
-            theRect.SetSize(newWidth, newHeight);
-            DoDrawRect(theRect);
-            break;
+class PartList
+{
+public:
+    PartList() : pHead(0), itsCount(0) {}
+    ~PartList() { delete pHead; }
+    Part *Find(int &position, int PartNumber) const
+    {
+        PartNode *pNode = 0;
+        for (pNode = pHead, position = 0; pNode != NULL; pNode = pNode->GetNext(), position--)
+        {
+            if (pNode->GetPart()->GetPartNumber() == PartNumber)
+                break;
+        }
+        if (pNode == NULL)
+            return NULL;
+        else
+            return pNode->GetPart();
+    }
+    int GetCount() const { return itsCount; }
+    Part *GetFirst() const
+    {
+        if (pHead)
+            return pHead->GetPart();
+        else
+            return NULL;
+    }
 
-        case Quit:
-            fQuit = true;
-            cout << "\nExiting..." << endl << endl;
-            break;
-        
-        default:
-            cout << "Error in choice!" << endl;
-            fQuit = true;
-            break;
+    void Insert(Part *pPart)
+    {
+        PartNode *pNode = new PartNode(pPart);
+        PartNode *pCurrent = pHead;
+        PartNode *pNext = 0;
+        int New = pPart->GetPartNumber();
+        int Next = 0;
+        itsCount++;
+        if (!pHead)
+        {
+            pHead = pNode;
+            return;
+        }
+        if (pHead->GetPart()->GetPartNumber() > New)
+        {
+            pNode->SetNext(pHead);
+            pHead = pNode;
+            return;
+        }
+        for (;;)
+        {
+            if (!pCurrent->GetNext())
+            {
+                pCurrent->SetNext(pNode);
+                return;
+            }
+            pNext = pCurrent->GetNext();
+            Next = pNext->GetPart()->GetPartNumber();
+            if (Next > New)
+            {
+                pCurrent->SetNext(pNode);
+                pNode->SetNext(pNext);
+                return;
+            }
+            pCurrent = pNext;
         }
     }
-
-    return 0;
-}
-
-int DoMenu() {
-    int choice;
-    cout << endl << endl;
-    cout << "  *** Menu ***  " << endl;
-    cout << "(1) Draw Rectangle" << endl;
-    cout << "(2) Area" << endl;
-    cout << "(3) Perimeter" << endl;
-    cout << "(4) Resize" << endl;
-    cout << "(5) Quit" << endl;
-
-    cin >> choice;
-    return choice;
-}
-
-void DoDrawRect(Rectangle theRect) {
-    int height = theRect.GetHeight();
-    int width = theRect.GetWidth();
-
-    for (int i=0; i<height; i++) {
-        for (int j=0; j<width; j++) cout << "*";
-        cout << endl;
+    void Iterate() const
+    {
+        if (!pHead)
+            return;
+        PartNode *pNode = pHead;
+        do
+        {
+            pNode->GetPart()->Display();
+        } while (pNode = pNode->GetNext());
     }
-}
+    Part *operator[](int offset) const
+    {
+        PartNode *pNode = pHead;
+        if (!pHead)
+            return NULL;
+        if (offset > itsCount)
+            return NULL;
+        for (int i = 0; i < offset; i++)
+        {
+            pNode = pNode->GetNext();
+        }
+        return pNode->GetPart();
+    }
 
-void DoGetArea(Rectangle theRect) {
-    cout << "Area: " << theRect.GetArea() << endl;
-}
+private:
+    PartNode *pHead;
+    int itsCount;
+};
 
-void DoGetPerim(Rectangle theRect) {
-    cout << "Perimeter: " << theRect.GetPerim() << endl;
+int main()
+{
+    PartList pl;
+
+    Part *pPart = 0;
+    int PartNumber;
+    int value;
+    int choice = 99;
+    while (choice != 0)
+    {
+        cout << "(0)Quit (1)Car (2)Plane: ";
+        cin >> choice;
+        if (choice != 0)
+        {
+            cout << "New PartNumber?: ";
+            cin >> PartNumber;
+            if (choice == 1)
+            {
+                cout << "Model Year?: ";
+                cin >> value;
+                pPart = new CarPart(value, PartNumber);
+            }
+            else
+            {
+                cout << "Engine Number?: ";
+                cin >> value;
+                pPart = new AirPlanePart(value, PartNumber);
+            }
+            pl.Insert(pPart);
+        }
+    }
+    pl.Iterate();
+    return 0;
 }
