@@ -1,27 +1,26 @@
-#if !defined(_FACTORY_H_)
+#ifndef _FACTORY_H_
 #define _FACTORY_H_
 
 class Product;
 
-class Factory
-{
+class Factory {
 private:
   /* data */
 protected:
   Factory() = default;
+
 public:
   virtual ~Factory() = default;
-  virtual Product * CreateProduct() = 0;
+  virtual Product *CreateProduct() = 0;
 };
 
-class ConcreteFactory: public Factory
-{
+class ConcreteFactory : public Factory {
 private:
   /* data */
 public:
   ConcreteFactory(/* args */);
   ~ConcreteFactory() = default;
-  Product * CreateProduct();
+  Product *CreateProduct();
 };
 
 #endif // _FACTORY_H_
